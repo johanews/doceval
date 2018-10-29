@@ -52,13 +52,13 @@ def display(results):
     :param results: the list containing the result of
     the evaluation
     """
-    print("-" * 80)
     for category in results:
         for file, funcs in category.items():
-            print("FILE: \t %s \n" % file)
+            print("-" * 80)
+            print("FILE: %s \n" % file)
             for fun, i in funcs.items():
-                print("%d: \t %s" % (i, fun))
-    print("-" * 80)
+                print("%d: %s" % (i, fun))
+        print("-" * 80)
 
 
 def cls_eval(files, queue):
