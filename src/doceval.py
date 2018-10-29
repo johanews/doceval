@@ -48,8 +48,9 @@ def doceval(files):
 
 def display(results):
     """
-    Print the output in a readable manner.
-    :param results: the list containing the results
+    Print the result in a readable manner.
+    :param results: the list containing the result of
+    the evaluation
     """
     print("-" * 80)
     for category in results:
@@ -67,8 +68,6 @@ def cls_eval(files, queue):
 
     :param files: the list of files
     :param queue: the queue for storing the result
-    :return: a dict with all the undocumented classes
-    in each file
     """
     regex = r'class\s(\w+\([\w.]*\)):'
     evaluate(files, regex, queue)
@@ -81,8 +80,6 @@ def fun_eval(files, queue):
 
     :param files: the list of files
     :param queue: the queue for storing the result
-    :return: a dict with all the undocumented methods
-    in each file
     """
     regex = r'def\s(\w+\(\w*\)):'
     evaluate(files, regex, queue)
@@ -92,14 +89,14 @@ def evaluate(files, regex, queue):
     """
     Scan each file from the input list, searching for
     undocumented code-blocks of the type specified by
-    the regex argument.
-
+    the regex argument. The relevant code-blocks (and
+    their corresponding line numbers) are stored in a
+    dict that is added to that shared result queue at
+    the very end.
 
     :param files: the list of files
     :param regex: the regex
     :param queue: the queue for storing the result
-    :return: a dict containing all the code-blocks in
-    each file that are not documented
     """
     check_doc = False
     preceding = ()
