@@ -44,8 +44,8 @@ def evaluate(files):
                 if check_doc:
                     match = re.search(doc_regex, line)
                     if not match:
-                        func = {preceding[0]: preceding[1]}
-                        undoc_fun[file].update(func)
+                        fun = {preceding[0]: preceding[1]}
+                        undoc_fun[file].update(fun)
                 match = re.search(fun_regex, line)
                 if match:
                     preceding = (match.group(1), i + 1)
