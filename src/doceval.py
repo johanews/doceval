@@ -52,7 +52,8 @@ def display(results):
     :param results: the list containing the result of
     the evaluation
     """
-    for category in results:
+    for (b, c, category) in results:
+        print("%s COVERAGE: %.1f%%" % (b, round(c * 100, 1)))
         for file, funcs in category.items():
             print("-" * 80)
             print("FILE: %s \n" % file)
@@ -69,8 +70,8 @@ def cls_eval(files, queue):
     :param files: the list of files
     :param queue: the queue for storing the result
     """
-    regex = r'class\s(\w+\([\w.]*\)):'
-    evaluate(files, regex, queue)
+    regex = r'class\s(\w+\([\w\s.]*\)):'
+    evaluate(files, "CLASS", regex, queue)
 
 
 def fun_eval(files, queue):
@@ -81,11 +82,11 @@ def fun_eval(files, queue):
     :param files: the list of files
     :param queue: the queue for storing the result
     """
-    regex = r'def\s(\w+\(\w*\)):'
-    evaluate(files, regex, queue)
+    regex = r'def\s(\w+\([\w\s,]*\)):'
+    evaluate(files, "FUNCTION/METHOD", regex, queue)
 
 
-def evaluate(files, regex, queue):
+def evaluate(files, block, regex, queue):
     """
     Scan each file from the input list, searching for
     undocumented code-blocks of the type specified by
@@ -95,6 +96,7 @@ def evaluate(files, regex, queue):
     the very end.
 
     :param files: the list of files
+    :param block: the block type defined by the regex
     :param regex: the regex
     :param queue: the queue for storing the result
     """
@@ -126,7 +128,12 @@ def evaluate(files, regex, queue):
         if not bool(undoc_blk[file]):
             del undoc_blk[file]
 
-    queue.put(undoc_blk)
+    if blk_count != 0:
+        coverage = (blk_count - len(undoc_blk)) / blk_count
+    else:
+        coverage = 0
+
+    queue.put((block, coverage, undoc_blk))
 
 
 def main():
