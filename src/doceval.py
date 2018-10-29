@@ -21,33 +21,52 @@ def scan_dir(dir):
     return files
 
 
-def cls_eval(files):
+def doceval(files):
+    queue = mp.Queue()
+
+    p1 = mp.Process(target=cls_eval, args=(files, queue,))
+    p2 = mp.Process(target=fun_eval, args=(files, queue,))
+
+    p1.start()
+    p2.start()
+
+    results = [queue.get() for _ in range(2)]
+
+    p1.join()
+    p2.join()
+
+    return results
+
+
+def cls_eval(files, queue):
     """
     Scan each file from the input list, searching for
     undocumented classes.
 
     :param files: the list of files
+    :param queue: the queue for storing the result
     :return: a dict with all the undocumented classes
     in each file
     """
     regex = r'class\s(\w+\([\w.]*\)):'
-    evaluate(files, regex)
+    evaluate(files, regex, queue)
 
 
-def fun_eval(files):
+def fun_eval(files, queue):
     """
     Scan each file from the input list, searching for
     undocumented methods.
 
     :param files: the list of files
+    :param queue: the queue for storing the result
     :return: a dict with all the undocumented methods
     in each file
     """
     regex = r'def\s(\w+\(\w*\)):'
-    evaluate(files, regex)
+    evaluate(files, regex, queue)
 
 
-def evaluate(files, regex):
+def evaluate(files, regex, queue):
     """
     Scan each file from the input list, searching for
     undocumented code-blocks of the type specified by
@@ -56,6 +75,7 @@ def evaluate(files, regex):
 
     :param files: the list of files
     :param regex: the regex
+    :param queue: the queue for storing the result
     :return: a dict containing all the code-blocks in
     each file that are not documented
     """
@@ -87,22 +107,15 @@ def evaluate(files, regex):
         if not bool(undoc_blk[file]):
             del undoc_blk[file]
 
-    print(undoc_blk)
+    queue.put(undoc_blk)
 
 
 def main():
     path = os.getcwd()
     assert os.path.isdir(path)
     files = scan_dir(path)
-
-    p1 = mp.Process(target=cls_eval, args=(files,))
-    p2 = mp.Process(target=fun_eval, args=(files,))
-
-    p1.start()
-    p2.start()
-
-    p1.join()
-    p2.join()
+    q = doceval(files)
+    print(q)
 
 
 if __name__ == "__main__":
