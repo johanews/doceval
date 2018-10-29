@@ -46,6 +46,20 @@ def doceval(files):
     return results
 
 
+def display(results):
+    """
+    Print the output in a readable manner.
+    :param results: the list containing the results
+    """
+    print("-" * 80)
+    for category in results:
+        for file, funcs in category.items():
+            print("FILE: \t %s \n" % file)
+            for fun, i in funcs.items():
+                print("%d: \t %s" % (i, fun))
+    print("-" * 80)
+
+
 def cls_eval(files, queue):
     """
     Scan each file from the input list, searching for
@@ -122,8 +136,8 @@ def main():
     path = os.getcwd()
     assert os.path.isdir(path)
     files = scan_dir(path)
-    q = doceval(files)
-    print(q)
+    result = doceval(files)
+    display(result)
 
 
 if __name__ == "__main__":
