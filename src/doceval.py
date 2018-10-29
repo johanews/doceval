@@ -35,7 +35,7 @@ def evaluate(files):
     fun_count = 0
 
     fun_regex = r'def\s(\w+\(\w*\)):'
-    doc_regex = r'"""'
+    doc_regex = r'^\s*"""\n'
 
     for file in files:
         undoc_fun[file] = {}
