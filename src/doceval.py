@@ -22,6 +22,14 @@ def scan_dir(dir):
 
 
 def doceval(files):
+    """
+    Responsible for running the analysis concurrently
+    by checking classes and functions in two separate
+    processes.
+    :param files: the list of files
+    :return: a list containing the joined result from
+    the separate processes.
+    """
     queue = mp.Queue()
 
     p1 = mp.Process(target=cls_eval, args=(files, queue,))
