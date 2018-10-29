@@ -53,7 +53,7 @@ def evaluate(files):
                 else:
                     check_doc = False
 
-        if not undoc_fun[file]:
+        if not bool(undoc_fun[file]):
             del undoc_fun[file]
 
     print(undoc_fun)
