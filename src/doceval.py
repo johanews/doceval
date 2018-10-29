@@ -32,6 +32,7 @@ def evaluate(files):
     check_doc = False
     preceding = ()
     undoc_fun = {}
+    fun_count = 0
 
     fun_regex = r'def\s(\w+\(\w*\)):'
     doc_regex = r'"""'
@@ -48,6 +49,7 @@ def evaluate(files):
                         undoc_fun[file].update(fun)
                 match = re.search(fun_regex, line)
                 if match:
+                    fun_count = fun_count + 1
                     preceding = (match.group(1), i + 1)
                     check_doc = True
                 else:
