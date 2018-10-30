@@ -132,12 +132,25 @@ def evaluate(files, block, regex, queue):
         if not bool(und_block[file]):
             del und_block[file]
 
-    if bool(doc_cover):
-        coverage = sum(doc_cover) / len(doc_cover)
-    else:
-        coverage = 1
+    coverage = coverage_calc(doc_cover)
 
     queue.put((block, coverage, und_block))
+
+
+def coverage_calc(doc_cover):
+    """
+    Analyse the input list containing the coverage in
+    each file. The global coverage is computed taking
+    the average of each file coverage. When the input
+    list is empty the coverage is defined to be 100%.
+
+    :param doc_cover: the list of file coverages
+    :return: return the coverage
+    """
+    if bool(doc_cover):
+        return sum(doc_cover) / len(doc_cover)
+    else:
+        return 1
 
 
 def main():
