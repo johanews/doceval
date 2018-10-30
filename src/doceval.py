@@ -132,7 +132,7 @@ def evaluate(files, block, regex, queue):
         if not bool(und_block[file]):
             del und_block[file]
 
-    if len(doc_cover) != 0:
+    if bool(doc_cover):
         coverage = sum(doc_cover) / len(doc_cover)
     else:
         coverage = 1
@@ -141,7 +141,7 @@ def evaluate(files, block, regex, queue):
 
 
 def main():
-    path = os.getcwd()          # input("Enter directory path: ")
+    path = input("Enter directory path: ")  # os.getcwd()
     assert os.path.isdir(path)
     files = scan_dir(path)
     result = doceval(files)
