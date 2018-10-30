@@ -145,7 +145,7 @@ def coverage_calc(doc_cover):
     list is empty the coverage is defined to be 100%.
 
     :param doc_cover: the list of file coverages
-    :return: return the coverage
+    :return: the global coverage
     """
     if bool(doc_cover):
         return sum(doc_cover) / len(doc_cover)
