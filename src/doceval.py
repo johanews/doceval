@@ -102,13 +102,14 @@ def evaluate(files, block, regex, queue):
     """
     check_doc = False
     preceding = ()
-    undoc_blk = {}
-    blk_count = 0
+    und_block = {}
+    doc_cover = []
 
-    doc_regex = r'^\s*"""\n'
+    doc_regex = r'^\s*""".*\n'
 
     for file in files:
-        undoc_blk[file] = {}
+        und_block[file] = {}
+        block_count = 0
 
         for i, line in enumerate(open(file)):
             if bool(line.strip()):
@@ -116,28 +117,31 @@ def evaluate(files, block, regex, queue):
                     match = re.search(doc_regex, line)
                     if not match:
                         fun = {preceding[0]: preceding[1]}
-                        undoc_blk[file].update(fun)
+                        und_block[file].update(fun)
                 match = re.search(regex, line)
                 if match:
-                    blk_count = blk_count + 1
+                    block_count += 1
                     preceding = (match.group(1), i + 1)
                     check_doc = True
                 else:
                     check_doc = False
 
-        if not bool(undoc_blk[file]):
-            del undoc_blk[file]
+        if block_count != 0:
+            doc_cover.append(1 - (len(und_block[file]) / block_count))
 
-    if blk_count != 0:
-        coverage = (blk_count - len(undoc_blk)) / blk_count
+        if not bool(und_block[file]):
+            del und_block[file]
+
+    if len(doc_cover) != 0:
+        coverage = sum(doc_cover) / len(doc_cover)
     else:
-        coverage = 0
+        coverage = 1
 
-    queue.put((block, coverage, undoc_blk))
+    queue.put((block, coverage, und_block))
 
 
 def main():
-    path = os.getcwd()
+    path = os.getcwd()          # input("Enter directory path: ")
     assert os.path.isdir(path)
     files = scan_dir(path)
     result = doceval(files)
