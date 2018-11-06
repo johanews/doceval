@@ -101,36 +101,36 @@ def evaluate(files, block, regex, queue):
     :param queue: the queue for storing the result
     """
     check_doc = False
-    preceding = ()
-    und_block = {}
-    doc_cover = []
+    preceding = ()      # A tuple storing the last discovered block (name and line number)
+    und_block = {}      # A map storing the undocumented blocks
+    doc_cover = []      # A list storing each file's coverage
 
     doc_regex = r'^\s*""".*\n'
 
     for file in files:
-        und_block[file] = {}
-        block_count = 0
+        und_block[file] = {}                                        # The path of the file serves as the map key
+        block_count = 0                                             # The initial number of blocks is reset to 0
 
         for i, line in enumerate(open(file)):
-            if bool(line.strip()):
+            if bool(line.strip()):                                  # Ignore empty lines
                 if check_doc:
                     match = re.search(doc_regex, line)
-                    if not match:
-                        fun = {preceding[0]: preceding[1]}
-                        und_block[file].update(fun)
+                    if not match:                                   # If there are docs missing underneath
+                        fun = {preceding[0]: preceding[1]}          # the preceding block, add it the map
+                        und_block[file].update(fun)                 # of undocumented blocks
                 match = re.search(regex, line)
-                if match:
-                    block_count += 1
-                    preceding = (match.group(1), i + 1)
-                    check_doc = True
+                if match:                                           # If a line matches the specified block type:
+                    block_count += 1                                # (1) increment the block counter
+                    preceding = (match.group(1), i + 1)             # (2) update the preceding variable
+                    check_doc = True                                # (3) make sure the next iteration checks for docs
                 else:
                     check_doc = False
 
         if block_count != 0:
-            doc_cover.append(1 - (len(und_block[file]) / block_count))
+            doc_cover.append(1 - (len(und_block[file]) / block_count))     # Store each file's coverage
 
-        if not bool(und_block[file]):
-            del und_block[file]
+        if not bool(und_block[file]):                                      # Remove files with full coverage (they do
+            del und_block[file]                                            # not contain blocks that will be printed)
 
     coverage = coverage_calc(doc_cover)
 
@@ -154,7 +154,7 @@ def coverage_calc(doc_cover):
 
 
 def main():
-    path = input("Enter directory path: ")  # os.getcwd()
+    path = input("Enter directory path: ")
     files = scan_dir(path)
     result = doceval(files)
     display(result)
