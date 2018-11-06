@@ -155,7 +155,6 @@ def coverage_calc(doc_cover):
 
 def main():
     path = input("Enter directory path: ")  # os.getcwd()
-    assert os.path.isdir(path)
     files = scan_dir(path)
     result = doceval(files)
     display(result)
