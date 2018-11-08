@@ -70,7 +70,7 @@ def cls_eval(files, queue):
     :param files: the list of files
     :param queue: the queue for storing the result
     """
-    regex = r'class\s(\w+\([\w\s.]*\)):'
+    regex = r'class\s(\w+\([\w\s\.]*\)):'
     evaluate(files, "CLASS", regex, queue)
 
 
@@ -82,7 +82,7 @@ def fun_eval(files, queue):
     :param files: the list of files
     :param queue: the queue for storing the result
     """
-    regex = r'def\s(\w+\([\w\s,]*\)):'
+    regex = r'def\s(\w+\([\w\s\*,]*\)):'
     evaluate(files, "FUNCTION/METHOD", regex, queue)
 
 
