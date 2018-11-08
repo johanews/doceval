@@ -101,11 +101,13 @@ def evaluate(files, block, regex, queue):
     :param queue: the queue for storing the result
     """
     check_doc = False
+    encircled = True
     preceding = ()      # A tuple storing the last discovered block (name and line number)
     und_block = {}      # A map storing the undocumented blocks
     doc_cover = []      # A list storing each file's coverage
 
-    doc_regex = r'^\s*""".*\n'
+    doc_regex_1 = r'^\s*""".*""".*\n'
+    doc_regex_2 = r'^\s*""".*\n'
 
     for file in files:
         und_block[file] = []                                        # The path of the file serves as the map key
@@ -114,17 +116,21 @@ def evaluate(files, block, regex, queue):
         for i, line in enumerate(open(file)):
             if bool(line.strip()):                                  # Ignore empty lines
                 if check_doc:
-                    match = re.search(doc_regex, line)
-                    if not match:                                   # If there are docs missing underneath
+                    match_1 = re.search(doc_regex_1, line)
+                    match_2 = re.search(doc_regex_2, line)
+                    if not match_1 and not match_2 and encircled:   # If there are docs missing underneath
                         fun = (preceding[0], preceding[1])          # the preceding block, add it the map
                         und_block[file].append(fun)                 # of undocumented blocks
-                match = re.search(regex, line)
-                if match:                                           # If a line matches the specified block type:
-                    block_count += 1                                # (1) increment the block counter
-                    preceding = (match.group(1), i + 1)             # (2) update the preceding variable
-                    check_doc = True                                # (3) make sure the next iteration checks for docs
-                else:
-                    check_doc = False
+                    if match_2:
+                        encircled = not encircled
+                if encircled:
+                    match = re.search(regex, line)
+                    if match:                                       # If a line matches the specified block type:
+                        block_count += 1                            # (1) increment the block counter
+                        preceding = (match.group(1), i + 1)         # (2) update the preceding variable
+                        check_doc = True                            # (3) make sure the next iteration checks for docs
+                    else:
+                        check_doc = False
 
         if block_count != 0:
             doc_cover.append(1 - (len(und_block[file]) / block_count))     # Store each file's coverage
