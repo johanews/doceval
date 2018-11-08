@@ -57,7 +57,7 @@ def display(results):
         for file, funcs in category.items():
             print("-" * 80)
             print("FILE: %s \n" % file)
-            for fun, i in funcs.items():
+            for (fun, i) in funcs:
                 print("%d: %s" % (i, fun))
         print("-" * 80)
 
@@ -70,7 +70,7 @@ def cls_eval(files, queue):
     :param files: the list of files
     :param queue: the queue for storing the result
     """
-    regex = r'class\s(\w+\([\w\s\.]*\)):'
+    regex = r'class\s(\w+\([\w\s.,]*\)):'
     evaluate(files, "CLASS", regex, queue)
 
 
@@ -82,7 +82,7 @@ def fun_eval(files, queue):
     :param files: the list of files
     :param queue: the queue for storing the result
     """
-    regex = r'def\s(\w+\([\w\s\*,]*\)):'
+    regex = r'def\s(\w+\([\w\s,*]*\)):'
     evaluate(files, "FUNCTION/METHOD", regex, queue)
 
 
@@ -108,7 +108,7 @@ def evaluate(files, block, regex, queue):
     doc_regex = r'^\s*""".*\n'
 
     for file in files:
-        und_block[file] = {}                                        # The path of the file serves as the map key
+        und_block[file] = []                                        # The path of the file serves as the map key
         block_count = 0                                             # The initial number of blocks is reset to 0
 
         for i, line in enumerate(open(file)):
@@ -116,8 +116,8 @@ def evaluate(files, block, regex, queue):
                 if check_doc:
                     match = re.search(doc_regex, line)
                     if not match:                                   # If there are docs missing underneath
-                        fun = {preceding[0]: preceding[1]}          # the preceding block, add it the map
-                        und_block[file].update(fun)                 # of undocumented blocks
+                        fun = (preceding[0], preceding[1])          # the preceding block, add it the map
+                        und_block[file].append(fun)                 # of undocumented blocks
                 match = re.search(regex, line)
                 if match:                                           # If a line matches the specified block type:
                     block_count += 1                                # (1) increment the block counter
