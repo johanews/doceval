@@ -139,7 +139,6 @@ def evaluate(files, block, regex, queue):
             del und_block[file]                                            # not contain blocks that will be printed)
 
     coverage = coverage_calc(doc_cover)
-
     queue.put((block, coverage, und_block))
 
 
