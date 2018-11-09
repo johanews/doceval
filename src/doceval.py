@@ -7,7 +7,6 @@ def scan_dir(dir):
     """
     Recursively search a directory for all its python
     files.
-
     :param dir: the directory
     :return: a list of all the python files contained
     in this directory
@@ -68,7 +67,6 @@ def cls_eval(files, queue):
     """
     Scan each file from the input list, searching for
     undocumented classes.
-
     :param files: the list of files
     :param queue: the queue for storing the result
     """
@@ -80,11 +78,10 @@ def fun_eval(files, queue):
     """
     Scan each file from the input list, searching for
     undocumented methods.
-
     :param files: the list of files
     :param queue: the queue for storing the result
     """
-    regex = r'def\s(\w+\([\w\s,*]*\)):'
+    regex = r'def\s(\w+\(.*\)):'
     evaluate(files, "FUNCTION/METHOD", regex, queue)
 
 
@@ -96,7 +93,6 @@ def evaluate(files, block, regex, queue):
     their corresponding line numbers) are stored in a
     dict that is added to that shared result queue at
     the very end.
-
     :param files: the list of files
     :param block: the block type defined by the regex
     :param regex: the regex
@@ -106,14 +102,15 @@ def evaluate(files, block, regex, queue):
     encircled = True
     preceding = ()      # A tuple storing the last discovered block (name and line number)
     und_block = {}      # A map storing the undocumented blocks
-    doc_cover = []      # A list storing each file's coverage
+
+    undoc_count = 0
+    block_count = 0
 
     doc_regex_1 = r'^\s*""".*""".*\n'
     doc_regex_2 = r'^\s*""".*\n'
 
     for file in files:
         und_block[file] = []                                        # The path of the file serves as the map key
-        block_count = 0                                             # The initial number of blocks is reset to 0
 
         for i, line in enumerate(open(file)):
             if bool(line.strip()):                                  # Ignore empty lines
@@ -123,6 +120,7 @@ def evaluate(files, block, regex, queue):
                     if not match_1 and not match_2 and encircled:   # If there are docs missing underneath
                         fun = (preceding[0], preceding[1])          # the preceding block, add it the list
                         und_block[file].append(fun)                 # of undocumented blocks
+                        undoc_count += 1
                     if match_2:
                         encircled = not encircled
                 if encircled:
@@ -134,30 +132,27 @@ def evaluate(files, block, regex, queue):
                     else:
                         check_doc = False
 
-        if block_count != 0:
-            doc_cover.append(1 - (len(und_block[file]) / block_count))     # Store each file's coverage
-
         if not bool(und_block[file]):                                      # Remove files with full coverage (they do
             del und_block[file]                                            # not contain blocks that will be printed)
 
-    coverage = coverage_calc(doc_cover)
+    coverage = coverage_calc(undoc_count, block_count)
     queue.put((block, coverage, und_block))
 
 
-def coverage_calc(doc_cover):
+def coverage_calc(undocumented, total):
     """
-    Analyse the input list containing the coverage in
-    each file. The global coverage is computed taking
-    the average of each file coverage. When the input
-    list is empty the coverage is defined to be 100%.
-
-    :param doc_cover: the list of file coverages
+    Compute the global average. When the total number
+    of blocks is 0, the coverage is defined to be 100
+    percent.
+    :param undocumented: the number of blocks missing
+    documentation
+    :param total: the total number of blocks
     :return: the global coverage
     """
-    if bool(doc_cover):
-        return sum(doc_cover) / len(doc_cover)
-    else:
+    assert undocumented <= total
+    if total == 0:
         return 1
+    return 1 - (undocumented/total)
 
 
 def main():
