@@ -1,5 +1,5 @@
 import os
-import re
+import ast
 import multiprocessing as mp
 
 
@@ -18,7 +18,7 @@ def scan_dir(dir):
     for (dirpath, dirnames, filenames) in os.walk(dir):
         for file in filenames:
             if file.endswith('.py'):
-                files.append(dirpath + "/" + file)
+                files.append(os.path.join(dirpath, file))
     return files
 
 
@@ -70,73 +70,66 @@ def cls_eval(files, queue):
     :param files: the list of files
     :param queue: the queue for storing the result
     """
-    regex = r'class\s(\w+\([\w\s.,]*\)):'
-    evaluate(files, "CLASS", regex, queue)
+    evaluate(files, "CLASS", ast.ClassDef, queue)
 
 
 def fun_eval(files, queue):
     """
     Scan each file from the input list, searching for
-    undocumented methods.
+    undocumented functions.
     :param files: the list of files
     :param queue: the queue for storing the result
     """
-    regex = r'def\s(\w+\(.*\)):'
-    evaluate(files, "FUNCTION/METHOD", regex, queue)
+    evaluate(files, "FUNCTION/METHOD", ast.FunctionDef, queue)
 
 
-def evaluate(files, block, regex, queue):
+def evaluate(files, name, astdef, queue):
     """
     Scan each file from the input list, searching for
-    undocumented code-blocks of the type specified by
-    the regex argument. The relevant code-blocks (and
-    their corresponding line numbers) are stored in a
-    dict that is added to that shared result queue at
-    the very end.
+    nodes defined by the node argument. Nodes missing
+    documentation are stored in a dict which is added
+    to the shared result queue at the very end.
     :param files: the list of files
-    :param block: the block type defined by the regex
-    :param regex: the regex
+    :param name: the node type as a string
+    :param astdef: the ast node definition
     :param queue: the queue for storing the result
     """
     check_doc = False
-    encircled = True
-    preceding = ()      # A tuple storing the last discovered block (name and line number)
-    und_block = {}      # A map storing the undocumented blocks
+    preceding = None
+    und_block = {}
 
     undoc_count = 0
     block_count = 0
 
-    doc_regex_1 = r'^\s*""".*""".*\n'
-    doc_regex_2 = r'^\s*""".*\n'
-
     for file in files:
-        und_block[file] = []                                        # The path of the file serves as the map key
 
-        for i, line in enumerate(open(file)):
-            if bool(line.strip()):                                  # Ignore empty lines
-                if check_doc:
-                    match_1 = re.search(doc_regex_1, line)
-                    match_2 = re.search(doc_regex_2, line)
-                    if not match_1 and not match_2 and encircled:   # If there are docs missing underneath
-                        fun = (preceding[0], preceding[1])          # the preceding block, add it the list
-                        und_block[file].append(fun)                 # of undocumented blocks
-                        undoc_count += 1
-                    if match_2:
-                        encircled = not encircled
-                if encircled:
-                    match = re.search(regex, line)
-                    if match:                                       # If a line matches the specified block type:
-                        block_count += 1                            # (1) increment the block counter
-                        preceding = (match.group(1), i + 1)         # (2) update the preceding variable
-                        check_doc = True                            # (3) make sure the next iteration checks for docs
-                    else:
-                        check_doc = False
+        und_block[file] = []
+        data = open(file).read()
+        tree = ast.parse(data)
 
-        if not bool(und_block[file]):                                      # Remove files with full coverage (they do
-            del und_block[file]                                            # not contain blocks that will be printed)
+        for node in ast.walk(tree):
+
+            if check_doc:
+                docs = ast.get_docstring(preceding)
+                if docs is None:
+                    fun = (preceding.name, preceding.lineno)
+                    und_block[file].append(fun)
+                    undoc_count += 1
+
+            if isinstance(node, astdef):
+                block_count += 1
+                preceding = node
+                check_doc = True
+            else:
+                check_doc = False
+
+        und_block[file].sort(key=lambda tup: tup[1])
+
+        if not bool(und_block[file]):
+            del und_block[file]
 
     coverage = coverage_calc(undoc_count, block_count)
-    queue.put((block, coverage, und_block))
+    queue.put((name, coverage, und_block))
 
 
 def coverage_calc(undocumented, total):
