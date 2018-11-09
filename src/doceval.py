@@ -53,13 +53,13 @@ def display(results):
     :param results: the list containing the result of
     the evaluation
     """
-    for (b, c, category) in results:
-        print("%s COVERAGE: %.1f%%" % (b, round(c * 100, 1)))
-        for file, funcs in category.items():
+    for (name, cov, astnodes) in results:
+        print("%s COVERAGE: %.1f%%" % (name, round(cov * 100, 1)))
+        for file, nodes in astnodes.items():
             print("-" * 80)
             print("FILE: %s \n" % file)
-            for (fun, i) in funcs:
-                print("%d: %s" % (i, fun))
+            for (i, node) in nodes:
+                print("%d: %s" % (i, node))
         print("-" * 80)
 
 
@@ -112,7 +112,7 @@ def evaluate(files, name, astdef, queue):
             if check_doc:
                 docs = ast.get_docstring(preceding)
                 if docs is None:
-                    fun = (preceding.name, preceding.lineno)
+                    fun = (preceding.lineno, preceding.name)
                     und_block[file].append(fun)
                     undoc_count += 1
 
@@ -123,7 +123,7 @@ def evaluate(files, name, astdef, queue):
             else:
                 check_doc = False
 
-        und_block[file].sort(key=lambda tup: tup[1])
+        und_block[file].sort(key=lambda tup: tup[0])
 
         if not bool(und_block[file]):
             del und_block[file]
