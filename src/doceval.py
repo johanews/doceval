@@ -12,6 +12,8 @@ def scan_dir(dir):
     :return: a list of all the python files contained
     in this directory
     """
+    if os.path.isfile(dir):
+        return [dir]
     assert os.path.isdir(dir)
     files = []
     for (dirpath, dirnames, filenames) in os.walk(dir):
@@ -119,7 +121,7 @@ def evaluate(files, block, regex, queue):
                     match_1 = re.search(doc_regex_1, line)
                     match_2 = re.search(doc_regex_2, line)
                     if not match_1 and not match_2 and encircled:   # If there are docs missing underneath
-                        fun = (preceding[0], preceding[1])          # the preceding block, add it the map
+                        fun = (preceding[0], preceding[1])          # the preceding block, add it the list
                         und_block[file].append(fun)                 # of undocumented blocks
                     if match_2:
                         encircled = not encircled
