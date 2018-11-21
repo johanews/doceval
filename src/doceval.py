@@ -94,8 +94,6 @@ def evaluate(files, name, astdef, queue):
     :param astdef: the ast node definition
     :param queue: the queue for storing the result
     """
-    check_doc = False
-    preceding = None
     und_block = {}
 
     undoc_count = 0
@@ -109,19 +107,14 @@ def evaluate(files, name, astdef, queue):
 
         for node in ast.walk(tree):
 
-            if check_doc:
-                docs = ast.get_docstring(preceding)
-                if docs is None:
-                    fun = (preceding.lineno, preceding.name)
-                    und_block[file].append(fun)
-                    undoc_count += 1
-
             if isinstance(node, astdef):
                 block_count += 1
-                preceding = node
-                check_doc = True
-            else:
-                check_doc = False
+                docs = ast.get_docstring(node)
+
+                if docs is None:
+                    fun = (node.lineno, node.name)
+                    und_block[file].append(fun)
+                    undoc_count += 1
 
         und_block[file].sort(key=lambda tup: tup[0])
 
