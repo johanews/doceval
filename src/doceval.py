@@ -111,7 +111,7 @@ def evaluate(files, name, astdef, queue):
                 block_count += 1
                 docs = ast.get_docstring(node)
 
-                if docs is None:
+                if docs is None or not docs:
                     fun = (node.lineno, node.name)
                     und_block[file].append(fun)
                     undoc_count += 1
