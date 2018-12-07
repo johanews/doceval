@@ -1,5 +1,6 @@
 import os
 import ast
+import time
 import multiprocessing as mp
 
 
@@ -143,9 +144,16 @@ def coverage_calc(undocumented, total):
 
 def main():
     path = input("Enter directory path: ")
-    files = scan_dir(path)
-    result = doceval(files)
-    display(result)
+    total = 0
+
+    for _ in range(100):
+        start = time.time()
+        files = scan_dir(path)
+        _ = doceval(files)
+        end = time.time()
+        total += (end - start)
+
+    print("Average execution time (100 runs): %.5f" % (total/100))
 
 
 if __name__ == "__main__":
